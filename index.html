@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aegis – Dynamic Emergency Engine</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+        }
+
+        #output {
+            background: white;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+        }
+
+        input {
+            width: 60px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Aegis – Emergency Response Engine</h2>
+
+<h3>Camera Input: Mark Exit Unsafe</h3>
+
+<button onclick="blockExit('A')">Block Exit A</button>
+<button onclick="blockExit('B')">Block Exit B</button>
+<button onclick="blockExit('C')">Block Exit C</button>
+<button onclick="blockExit('D')">Block Exit D</button>
+<button onclick="resetSystem()">Reset</button>
+
+<br><br>
+
+<button onclick="runEvacuation()">Run Evacuation</button>
+
+<div id="hazardInputSection" style="display:none; margin-top:20px;">
+    <h3>All Exits Blocked – Enter Hazard Levels</h3>
+    Zone A: <input type="number" id="hazA"><br>
+    Zone B: <input type="number" id="hazB"><br>
+    Zone C: <input type="number" id="hazC"><br>
+    Zone D: <input type="number" id="hazD"><br>
+    <button onclick="calculateSafeZone()">Confirm Hazard Levels</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+
+// Exit state (dynamic)
+let exits = {
+    A: true,
+    B: true,
+    C: true,
+    D: true
+};
+
+// Distance matrix
+const distances = {
+    A: { A: 40, B: 90, C: 170, D: 300 },
+    B: { A: 50, B: 60, C: 150, D: 280 },
+    C: { A: 130, B: 120, C: 70, D: 250 },
+    D: { A: 400, B: 300, C: 200, D: 100 }
+};
+
+function blockExit(exit) {
+    exits[exit] = false;
+    alert("Camera Input: Exit " + exit + " marked UNSAFE");
+}
+
+function resetSystem() {
+    exits = { A: true, B: true, C: true, D: true };
+    document.getElementById("output").innerHTML = "";
+    document.getElementById("hazardInputSection").style.display = "none";
+}
+
+function calculateSafeExit(zone) {
+    let safeExits = Object.keys(exits).filter(e => exits[e]);
+
+    if (safeExits.length === 0) return null;
+
+    let shortestExit = null;
+    let shortestDistance = Infinity;
+
+    safeExits.forEach(exit => {
+        let distance = distances[zone][exit];
+        if (distance < shortestDistance) {
+            shortestDistance = distance;
+            shortestExit = exit;
+        }
+    });
+
+    return shortestExit;
+}
+
+function runEvacuation() {
+
+    let output = document.getElementById("output");
+    output.innerHTML = "";
+
+    let safeExits = Object.keys(exits).filter(e => exits[e]);
+
+    if (safeExits.length === 0) {
+        output.innerHTML += "<strong>All exits are blocked.</strong><br>";
+        output.innerHTML += "Enter hazard levels to determine safest regroup zone.<br>";
+        document.getElementById("hazardInputSection").style.display = "block";
+        return;
+    }
+
+    ["A", "B", "C", "D"].forEach(zone => {
+        let assignedExit = calculateSafeExit(zone);
+
+        output.innerHTML += 
+            "All personnel in Zone " + zone +
+            " evacuate through Port Exit " + assignedExit + ".<br>";
+    });
+}
+
+function calculateSafeZone() {
+
+    let hazard = {
+        A: Number(document.getElementById("hazA").value),
+        B: Number(document.getElementById("hazB").value),
+        C: Number(document.getElementById("hazC").value),
+        D: Number(document.getElementById("hazD").value)
+    };
+
+    let minZone = null;
+    let minHazard = Infinity;
+
+    Object.keys(hazard).forEach(zone => {
+        if (hazard[zone] < minHazard) {
+            minHazard = hazard[zone];
+            minZone = zone;
+        }
+    });
+
+    let output = document.getElementById("output");
+    output.innerHTML += "<br><strong>Requesting aerial rescue support.</strong><br>";
+    output.innerHTML += 
+        "Minimal hazard detected in Zone " + minZone +
+        ". Evacuate and regroup in Zone " + minZone + ".";
+}
+
+</script>
+
+</body>
+</html>
