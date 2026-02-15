@@ -1,70 +1,176 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Aegis – Dynamic Emergency Engine</title>
+    <title>Aegis – Emergency Control Dashboard</title>
     <style>
+
         body {
-            font-family: Arial;
-            background: #f4f6f9;
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #0f172a;
+            color: white;
+        }
+
+        header {
+            background-color: #111827;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: 600;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             padding: 20px;
+        }
+
+        .card {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.4);
+        }
+
+        .exit-grid {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .exit-box {
+            width: 80px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .safe {
+            background-color: #16a34a;
+        }
+
+        .unsafe {
+            background-color: #dc2626;
+        }
+
+        .zone-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .zone {
+            width: 80px;
+            height: 60px;
+            background-color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-weight: bold;
         }
 
         button {
             margin: 5px;
             padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
         }
 
-        #output {
-            background: white;
-            padding: 15px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
+        .danger-btn {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .primary-btn {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .reset-btn {
+            background-color: #6b7280;
+            color: white;
         }
 
         input {
             width: 60px;
             margin: 5px;
+            padding: 4px;
         }
+
+        #output {
+            background-color: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #1f2937;
+            margin-top: 15px;
+            min-height: 120px;
+        }
+
     </style>
 </head>
 <body>
 
-<h2>Aegis – Emergency Response Engine</h2>
+<header>
+    AEGIS – Emergency Operations Control Panel
+</header>
 
-<h3>Camera Input: Mark Exit Unsafe</h3>
+<div class="container">
 
-<button onclick="blockExit('A')">Block Exit A</button>
-<button onclick="blockExit('B')">Block Exit B</button>
-<button onclick="blockExit('C')">Block Exit C</button>
-<button onclick="blockExit('D')">Block Exit D</button>
-<button onclick="resetSystem()">Reset</button>
+    <!-- EXIT STATUS -->
+    <div class="card">
+        <h3>Exit Status</h3>
+        <div class="exit-grid" id="exitStatus"></div>
+    </div>
 
-<br><br>
+    <!-- ZONE MAP -->
+    <div class="card">
+        <h3>Operational Zones</h3>
+        <div class="zone-grid">
+            <div class="zone">Zone A</div>
+            <div class="zone">Zone B</div>
+            <div class="zone">Zone C</div>
+            <div class="zone">Zone D</div>
+        </div>
+    </div>
 
-<button onclick="runEvacuation()">Run Evacuation</button>
+    <!-- CONTROL PANEL -->
+    <div class="card">
+        <h3>Camera Input</h3>
+        <button class="danger-btn" onclick="blockExit('A')">Block Exit A</button>
+        <button class="danger-btn" onclick="blockExit('B')">Block Exit B</button>
+        <button class="danger-btn" onclick="blockExit('C')">Block Exit C</button>
+        <button class="danger-btn" onclick="blockExit('D')">Block Exit D</button>
+        <button class="reset-btn" onclick="resetSystem()">Reset</button>
+        <br><br>
+        <button class="primary-btn" onclick="runEvacuation()">Run Evacuation Calculation</button>
 
-<div id="hazardInputSection" style="display:none; margin-top:20px;">
-    <h3>All Exits Blocked – Enter Hazard Levels</h3>
-    Zone A: <input type="number" id="hazA"><br>
-    Zone B: <input type="number" id="hazB"><br>
-    Zone C: <input type="number" id="hazC"><br>
-    Zone D: <input type="number" id="hazD"><br>
-    <button onclick="calculateSafeZone()">Confirm Hazard Levels</button>
+        <div id="hazardSection" style="display:none; margin-top:15px;">
+            <h4>All Exits Blocked – Enter Hazard Levels</h4>
+            A <input type="number" id="hazA">
+            B <input type="number" id="hazB">
+            C <input type="number" id="hazC">
+            D <input type="number" id="hazD">
+            <br>
+            <button class="primary-btn" onclick="calculateSafeZone()">Confirm</button>
+        </div>
+    </div>
+
+    <!-- SYSTEM OUTPUT -->
+    <div class="card">
+        <h3>System Output</h3>
+        <div id="output"></div>
+    </div>
+
 </div>
-
-<div id="output"></div>
 
 <script>
 
-// Exit state (dynamic)
-let exits = {
-    A: true,
-    B: true,
-    C: true,
-    D: true
-};
+let exits = { A: true, B: true, C: true, D: true };
 
-// Distance matrix
 const distances = {
     A: { A: 40, B: 90, C: 170, D: 300 },
     B: { A: 50, B: 60, C: 150, D: 280 },
@@ -72,84 +178,83 @@ const distances = {
     D: { A: 400, B: 300, C: 200, D: 100 }
 };
 
+function renderExitStatus() {
+    let container = document.getElementById("exitStatus");
+    container.innerHTML = "";
+
+    Object.keys(exits).forEach(exit => {
+        let box = document.createElement("div");
+        box.className = "exit-box " + (exits[exit] ? "safe" : "unsafe");
+        box.innerText = "Exit " + exit;
+        container.appendChild(box);
+    });
+}
+
 function blockExit(exit) {
     exits[exit] = false;
-    alert("Camera Input: Exit " + exit + " marked UNSAFE");
+    renderExitStatus();
 }
 
 function resetSystem() {
     exits = { A: true, B: true, C: true, D: true };
     document.getElementById("output").innerHTML = "";
-    document.getElementById("hazardInputSection").style.display = "none";
+    document.getElementById("hazardSection").style.display = "none";
+    renderExitStatus();
 }
 
 function calculateSafeExit(zone) {
     let safeExits = Object.keys(exits).filter(e => exits[e]);
-
     if (safeExits.length === 0) return null;
 
-    let shortestExit = null;
-    let shortestDistance = Infinity;
+    let shortest = null;
+    let min = Infinity;
 
     safeExits.forEach(exit => {
-        let distance = distances[zone][exit];
-        if (distance < shortestDistance) {
-            shortestDistance = distance;
-            shortestExit = exit;
+        let dist = distances[zone][exit];
+        if (dist < min) {
+            min = dist;
+            shortest = exit;
         }
     });
 
-    return shortestExit;
+    return shortest;
 }
 
 function runEvacuation() {
-
     let output = document.getElementById("output");
     output.innerHTML = "";
 
     let safeExits = Object.keys(exits).filter(e => exits[e]);
 
     if (safeExits.length === 0) {
-        output.innerHTML += "<strong>All exits are blocked.</strong><br>";
-        output.innerHTML += "Enter hazard levels to determine safest regroup zone.<br>";
-        document.getElementById("hazardInputSection").style.display = "block";
+        output.innerHTML = "All exits are blocked. Awaiting hazard input.";
+        document.getElementById("hazardSection").style.display = "block";
         return;
     }
 
-    ["A", "B", "C", "D"].forEach(zone => {
-        let assignedExit = calculateSafeExit(zone);
-
+    ["A","B","C","D"].forEach(zone => {
+        let exit = calculateSafeExit(zone);
         output.innerHTML += 
             "All personnel in Zone " + zone +
-            " evacuate through Port Exit " + assignedExit + ".<br>";
+            " evacuate through Port Exit " + exit + ".<br>";
     });
 }
 
 function calculateSafeZone() {
-
     let hazard = {
-        A: Number(document.getElementById("hazA").value),
-        B: Number(document.getElementById("hazB").value),
-        C: Number(document.getElementById("hazC").value),
-        D: Number(document.getElementById("hazD").value)
+        A: Number(hazA.value),
+        B: Number(hazB.value),
+        C: Number(hazC.value),
+        D: Number(hazD.value)
     };
 
-    let minZone = null;
-    let minHazard = Infinity;
+    let minZone = Object.keys(hazard).reduce((a,b)=> hazard[a] < hazard[b] ? a : b);
 
-    Object.keys(hazard).forEach(zone => {
-        if (hazard[zone] < minHazard) {
-            minHazard = hazard[zone];
-            minZone = zone;
-        }
-    });
-
-    let output = document.getElementById("output");
-    output.innerHTML += "<br><strong>Requesting aerial rescue support.</strong><br>";
-    output.innerHTML += 
-        "Minimal hazard detected in Zone " + minZone +
-        ". Evacuate and regroup in Zone " + minZone + ".";
+    document.getElementById("output").innerHTML += 
+        "<br>Requesting aerial rescue. Regroup in Zone " + minZone + ".";
 }
+
+renderExitStatus();
 
 </script>
 
