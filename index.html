@@ -169,14 +169,15 @@
 
 <script>
 
-let exits = { A: true, B: true, C: true, D: true };
-
+// Corrected distance matrix
 const distances = {
-    A: { A: 40, B: 90, C: 170, D: 300 },
-    B: { A: 50, B: 60, C: 150, D: 280 },
-    C: { A: 130, B: 120, C: 70, D: 250 },
-    D: { A: 400, B: 300, C: 200, D: 100 }
+    A: { A: 40, B: 120, C: 200, D: 350 },
+    B: { A: 100, B: 40, C: 150, D: 300 },
+    C: { A: 180, B: 120, C: 50, D: 220 },
+    D: { A: 400, B: 300, C: 180, D: 60 }
 };
+
+let exits = { A: true, B: true, C: true, D: true };
 
 function renderExitStatus() {
     let container = document.getElementById("exitStatus");
@@ -235,8 +236,8 @@ function runEvacuation() {
     ["A","B","C","D"].forEach(zone => {
         let exit = calculateSafeExit(zone);
         output.innerHTML += 
-            "All personnel in Zone " + zone +
-            " evacuate through Port Exit " + exit + ".<br>";
+            "<strong>All personnel in Zone " + zone +
+            " evacuate through Port Exit " + exit + ".</strong><br>";
     });
 }
 
@@ -248,10 +249,11 @@ function calculateSafeZone() {
         D: Number(hazD.value)
     };
 
-    let minZone = Object.keys(hazard).reduce((a,b)=> hazard[a] < hazard[b] ? a : b);
+    let minZone = Object.keys(hazard)
+        .reduce((a,b)=> hazard[a] < hazard[b] ? a : b);
 
     document.getElementById("output").innerHTML += 
-        "<br>Requesting aerial rescue. Regroup in Zone " + minZone + ".";
+        "<br><strong>Requesting aerial rescue. Regroup in Zone " + minZone + ".</strong>";
 }
 
 renderExitStatus();
